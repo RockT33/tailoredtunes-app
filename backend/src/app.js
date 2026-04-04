@@ -13,9 +13,9 @@ app.use(cors({
   credentials: true
 }));
 
-// ── Webhook routes need RAW body (MUST be before express.json) ──
-// TODO (Integration Engineer): mount webhook routes here with express.raw
-// app.use('/api/webhooks', express.raw({ type: 'application/json' }), require('./routes/webhooks'));
+// ── Webhook routes (MUST be before express.json) ────────────
+// Each sub-route applies its own body parser (raw for Stripe, json for TemPolor)
+app.use('/api/webhooks', require('./routes/webhooks'));
 
 // ── Body parsing ─────────────────────────────────────────
 app.use(express.json());
