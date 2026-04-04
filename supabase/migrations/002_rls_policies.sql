@@ -29,7 +29,28 @@ DROP POLICY IF EXISTS analytics_insert_own ON analytics_events;
 CREATE POLICY analytics_insert_own ON analytics_events
   FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
--- ── Storage bucket (run in Supabase Storage settings) ────
--- Bucket name: audio-files (private)
--- Service role has full access (bypasses RLS)
--- Policy: users can read files in their own folder
+-- ── Storage bucket ──────────────────────────────────────
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('audio-files', 'audio-files', false)
+ON CONFLICT (id) DO NOTHING;
+
+DROP POLICY IF EXISTS "Service role full access" ON storage.objects;
+CREATE POLICY "Service role full access" ON storage.objects
+  FOR ALL USING (auth.role() = 'service_role');
+
+DROP POLICY IF EXISTS "Users read own audio" ON storage.objects;
+CREATE POLICY "Users read own audio" ON storage.objects
+  FOR SELECT USING (
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- ── Analytics views ──────────────────────────────────────
+CREATE OR REPLACE VIEW order_summary AS
+SELECT
+  DATE_TRUNC('day', created_at) AS day,
+  tier,
+  status,
+  COUNT(*) AS count
+FROM orders
+GROUP BY 1, 2, 3
+ORDER BY 1 DESC;
