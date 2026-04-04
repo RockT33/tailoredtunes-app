@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ── Rate limiting ────────────────────────────────────────
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
@@ -31,20 +31,23 @@ const generalLimiter = rateLimit({
 });
 app.use(generalLimiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many auth attempts, try again later', code: 'RATE_LIMITED' }
+});
+app.use('/api/auth', authLimiter);
+
 // ── Health check ─────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0',
-    env: process.env.NODE_ENV || 'development'
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // ── Routes ───────────────────────────────────────────────
-// TODO (Backend Engineer): uncomment as routes are built
-// app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/orders', require('./routes/orders'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/orders', require('./routes/orders'));
 
 // ── 404 handler ──────────────────────────────────────────
 app.use((req, res) => {
