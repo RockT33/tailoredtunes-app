@@ -1,0 +1,59 @@
+{
+  "family": "tailortunez-backend",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/TailoredTunezECSTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "tailortunez-backend",
+      "image": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/tailortunez-backend:IMAGE_TAG",
+      "portMappings": [
+        {
+          "containerPort": 3001,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        { "name": "NODE_ENV", "value": "production" },
+        { "name": "PORT",     "value": "3001" }
+      ],
+      "secrets": [
+        { "name": "SUPABASE_URL",                "valueFrom": "/tailortunez/SUPABASE_URL" },
+        { "name": "SUPABASE_ANON_KEY",           "valueFrom": "/tailortunez/SUPABASE_ANON_KEY" },
+        { "name": "SUPABASE_SERVICE_ROLE_KEY",   "valueFrom": "/tailortunez/SUPABASE_SERVICE_ROLE_KEY" },
+        { "name": "TEMPOLOR_API_KEY",            "valueFrom": "/tailortunez/TEMPOLOR_API_KEY" },
+        { "name": "TEMPOLOR_BASE_URL",           "valueFrom": "/tailortunez/TEMPOLOR_BASE_URL" },
+        { "name": "TEMPOLOR_SONG_MODEL",         "valueFrom": "/tailortunez/TEMPOLOR_SONG_MODEL" },
+        { "name": "TEMPOLOR_INSTRUMENTAL_MODEL", "valueFrom": "/tailortunez/TEMPOLOR_INSTRUMENTAL_MODEL" },
+        { "name": "STRIPE_SECRET_KEY",           "valueFrom": "/tailortunez/STRIPE_SECRET_KEY" },
+        { "name": "STRIPE_PUBLISHABLE_KEY",      "valueFrom": "/tailortunez/STRIPE_PUBLISHABLE_KEY" },
+        { "name": "STRIPE_WEBHOOK_SECRET",       "valueFrom": "/tailortunez/STRIPE_WEBHOOK_SECRET" },
+        { "name": "STRIPE_PRICE_BASIC",          "valueFrom": "/tailortunez/STRIPE_PRICE_BASIC" },
+        { "name": "STRIPE_PRICE_PRO",            "valueFrom": "/tailortunez/STRIPE_PRICE_PRO" },
+        { "name": "STRIPE_PRICE_PREMIUM",        "valueFrom": "/tailortunez/STRIPE_PRICE_PREMIUM" },
+        { "name": "JWT_SECRET",                  "valueFrom": "/tailortunez/JWT_SECRET" },
+        { "name": "FRONTEND_URL",                "valueFrom": "/tailortunez/FRONTEND_URL" },
+        { "name": "CORS_ORIGIN",                 "valueFrom": "/tailortunez/CORS_ORIGIN" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group":         "/ecs/tailortunez-backend",
+          "awslogs-region":        "us-east-1",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group":  "true"
+        }
+      },
+      "healthCheck": {
+        "command":     ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health || exit 1"],
+        "interval":    15,
+        "timeout":     5,
+        "retries":     3,
+        "startPeriod": 30
+      }
+    }
+  ]
+}

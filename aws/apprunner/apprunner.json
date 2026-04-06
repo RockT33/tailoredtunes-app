@@ -1,0 +1,51 @@
+{
+  "ServiceName": "tailortunez-backend",
+  "SourceConfiguration": {
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::ACCOUNT_ID:role/AppRunnerECRAccessRole"
+    },
+    "AutoDeploymentsEnabled": true,
+    "ImageRepository": {
+      "ImageIdentifier": "ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/tailortunez-backend:latest",
+      "ImageConfiguration": {
+        "Port": "3001",
+        "RuntimeEnvironmentVariables": {
+          "NODE_ENV": "production",
+          "PORT": "3001"
+        },
+        "RuntimeEnvironmentSecrets": {
+          "SUPABASE_URL":                "/tailortunez/SUPABASE_URL",
+          "SUPABASE_ANON_KEY":           "/tailortunez/SUPABASE_ANON_KEY",
+          "SUPABASE_SERVICE_ROLE_KEY":   "/tailortunez/SUPABASE_SERVICE_ROLE_KEY",
+          "TEMPOLOR_API_KEY":            "/tailortunez/TEMPOLOR_API_KEY",
+          "TEMPOLOR_BASE_URL":           "/tailortunez/TEMPOLOR_BASE_URL",
+          "TEMPOLOR_SONG_MODEL":         "/tailortunez/TEMPOLOR_SONG_MODEL",
+          "TEMPOLOR_INSTRUMENTAL_MODEL": "/tailortunez/TEMPOLOR_INSTRUMENTAL_MODEL",
+          "STRIPE_SECRET_KEY":           "/tailortunez/STRIPE_SECRET_KEY",
+          "STRIPE_PUBLISHABLE_KEY":      "/tailortunez/STRIPE_PUBLISHABLE_KEY",
+          "STRIPE_WEBHOOK_SECRET":       "/tailortunez/STRIPE_WEBHOOK_SECRET",
+          "STRIPE_PRICE_BASIC":          "/tailortunez/STRIPE_PRICE_BASIC",
+          "STRIPE_PRICE_PRO":            "/tailortunez/STRIPE_PRICE_PRO",
+          "STRIPE_PRICE_PREMIUM":        "/tailortunez/STRIPE_PRICE_PREMIUM",
+          "JWT_SECRET":                  "/tailortunez/JWT_SECRET",
+          "FRONTEND_URL":                "/tailortunez/FRONTEND_URL",
+          "CORS_ORIGIN":                 "/tailortunez/CORS_ORIGIN"
+        }
+      },
+      "ImageRepositoryType": "ECR"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "0.25 vCPU",
+    "Memory": "0.5 GB"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/api/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  },
+  "AutoScalingConfigurationArn": "arn:aws:apprunner:us-east-1:ACCOUNT_ID:autoscalingconfiguration/DefaultConfiguration"
+}
