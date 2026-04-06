@@ -21,7 +21,7 @@ async function createCheckoutSession({ orderId, tier, userEmail, successUrl, can
     cancel_url: cancelUrl
   });
 
-  return session;
+  return session.url;
 }
 
 module.exports = { stripe, createCheckoutSession };

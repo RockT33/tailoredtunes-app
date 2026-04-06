@@ -1,6 +1,20 @@
 const express = require('express');
 const { supabase } = require('../config/supabase');
 const authMiddleware = require('../middleware/auth');
+const { getSignedUrls } = require('../integrations/storage');
+
+// Attach fresh signed download URLs to a complete order
+async function withSignedUrls(order) {
+  if (order.status !== 'complete' || (!order.audio_mp3_url && !order.audio_wav_url)) {
+    return order;
+  }
+  try {
+    const [mp3Url, wavUrl] = await getSignedUrls(order.audio_mp3_url, order.audio_wav_url);
+    return { ...order, audio_mp3_url: mp3Url, audio_wav_url: wavUrl };
+  } catch {
+    return order;
+  }
+}
 
 const router = express.Router();
 
@@ -60,7 +74,7 @@ router.post('/', async (req, res, next) => {
         orderId: order.id,
         tier,
         userEmail: user?.email,
-        successUrl: `${process.env.FRONTEND_URL}/order/${order.id}/status?payment=success`,
+        successUrl: `${process.env.FRONTEND_URL}/order/${order.id}?payment=success`,
         cancelUrl: `${process.env.FRONTEND_URL}/order/new?cancelled=true`
       });
     } catch (stripeErr) {
@@ -104,7 +118,7 @@ router.get('/:id', async (req, res, next) => {
       return res.status(404).json({ error: 'Order not found', code: 'NOT_FOUND' });
     }
 
-    res.json({ order });
+    res.json({ order: await withSignedUrls(order) });
   } catch (err) {
     next(err);
   }
@@ -129,6 +143,40 @@ router.get('/:id/status', async (req, res, next) => {
       audioMp3Url: order.audio_mp3_url,
       audioWavUrl: order.audio_wav_url
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/orders/:id/retry — retry a failed order
+router.post('/:id/retry', async (req, res, next) => {
+  try {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single();
+
+    if (error || !order) {
+      return res.status(404).json({ error: 'Order not found', code: 'NOT_FOUND' });
+    }
+
+    if (order.status !== 'failed') {
+      return res.status(400).json({ error: 'Only failed orders can be retried', code: 'INVALID_STATUS' });
+    }
+
+    const { generateMusic } = require('../integrations/tempolor');
+    const jobId = await generateMusic(order);
+
+    const { error: updateErr } = await supabase
+      .from('orders')
+      .update({ status: 'generating', tempolor_job_id: jobId, error_message: null })
+      .eq('id', order.id);
+
+    if (updateErr) return next(updateErr);
+
+    res.json({ status: 'generating', jobId });
   } catch (err) {
     next(err);
   }
