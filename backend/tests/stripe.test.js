@@ -35,9 +35,9 @@ describe('createCheckoutSession', () => {
     };
     mockSessionsCreate.mockResolvedValue(mockSession);
 
-    const session = await createCheckoutSession(baseParams);
+    const url = await createCheckoutSession(baseParams);
 
-    expect(session).toEqual(mockSession);
+    expect(url).toBe(mockSession.url);
     expect(mockSessionsCreate).toHaveBeenCalledWith(expect.objectContaining({
       mode: 'payment',
       customer_email: 'user@example.com',
