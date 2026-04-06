@@ -42,7 +42,7 @@ app.use('/api/auth', authLimiter);
 
 // ── Health check ─────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: require('../package.json').version });
 });
 
 // ── Routes ───────────────────────────────────────────────
