@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 
 const STEPS = [
@@ -44,16 +44,18 @@ function WaveformAnimation() {
 export default function OrderStatus() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const paymentSuccess = searchParams.get('payment') === 'success'
   const [order, setOrder] = useState(null)
   const [error, setError] = useState('')
   const [retrying, setRetrying] = useState(false)
   const pollRef = useRef(null)
 
-  const fetchStatus = async () => {
+  const pollStatus = async () => {
     try {
       const res = await api.get(`/orders/${id}/status`)
       const data = res.data
-      setOrder(data)
+      setOrder(prev => ({ ...prev, status: data.status }))
 
       if (data.status === 'complete') {
         clearInterval(pollRef.current)
@@ -67,8 +69,18 @@ export default function OrderStatus() {
   }
 
   useEffect(() => {
-    fetchStatus()
-    pollRef.current = setInterval(fetchStatus, 10000)
+    // Initial full fetch for title/genre/etc, then poll lightweight status
+    api.get(`/orders/${id}`)
+      .then(res => {
+        const order = res.data.order
+        setOrder(order)
+        if (order.status === 'complete') {
+          navigate(`/order/${id}/done`)
+        } else if (order.status !== 'failed') {
+          pollRef.current = setInterval(pollStatus, 10000)
+        }
+      })
+      .catch(() => setError('Unable to fetch order status.'))
     return () => clearInterval(pollRef.current)
   }, [id])
 
@@ -78,7 +90,7 @@ export default function OrderStatus() {
     try {
       await api.post(`/orders/${id}/retry`)
       setOrder(o => ({ ...o, status: 'pending' }))
-      pollRef.current = setInterval(fetchStatus, 10000)
+      pollRef.current = setInterval(pollStatus, 10000)
     } catch {
       setError('Retry failed. Please contact support.')
     } finally {
@@ -103,6 +115,12 @@ export default function OrderStatus() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="w-full max-w-lg">
+          {paymentSuccess && (
+            <div className="bg-green-900/30 border border-green-700 text-green-300 rounded-lg px-4 py-3 text-sm mb-6 text-center">
+              Payment confirmed! Your track is now being generated.
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-900/30 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-6 text-center">
               {error}

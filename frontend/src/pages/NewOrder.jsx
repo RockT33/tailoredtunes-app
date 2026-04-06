@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { loadStripe } from '@stripe/stripe-js'
 import api from '../services/api'
 
@@ -32,6 +32,8 @@ const MOODS = ['Happy', 'Sad', 'Energetic', 'Calm', 'Romantic', 'Mysterious', 'E
 
 export default function NewOrder() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const wasCancelled = searchParams.get('cancelled') === 'true'
   const [tier, setTier] = useState('pro')
   const [form, setForm] = useState({ title: '', genre: '', mood: '', type: 'song' })
   const [error, setError] = useState('')
@@ -57,7 +59,7 @@ export default function NewOrder() {
         const stripe = await loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)
         await stripe.redirectToCheckout({ sessionId })
       } else {
-        navigate(`/order/${res.data.orderId || res.data.id}`)
+        navigate(`/order/${res.data.order.id}`)
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to create order. Please try again.')
@@ -81,6 +83,12 @@ export default function NewOrder() {
       <main className="max-w-3xl mx-auto px-6 py-10">
         <h1 className="text-2xl font-bold mb-1">Create a New Song</h1>
         <p className="text-gray-400 text-sm mb-8">Choose your plan and describe your track.</p>
+
+        {wasCancelled && (
+          <div className="bg-yellow-900/30 border border-yellow-700 text-yellow-300 rounded-lg px-4 py-3 text-sm mb-6">
+            Payment was cancelled — your order wasn't charged. Fill in the form below to try again.
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-900/30 border border-red-700 text-red-300 rounded-lg px-4 py-3 text-sm mb-6">

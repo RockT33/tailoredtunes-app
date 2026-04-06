@@ -16,8 +16,8 @@ export default function Download() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    api.get(`/orders/${id}/status`)
-      .then(res => setOrder(res.data))
+    api.get(`/orders/${id}`)
+      .then(res => setOrder(res.data.order))
       .catch(() => setError('Failed to load order details.'))
       .finally(() => setLoading(false))
   }, [id])
@@ -94,11 +94,24 @@ export default function Download() {
               </div>
             </div>
 
+            {/* Audio preview player */}
+            {order.audio_mp3_url && (
+              <div className="mb-5">
+                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider font-medium">Preview</p>
+                <audio
+                  controls
+                  src={order.audio_mp3_url}
+                  className="w-full rounded-lg"
+                  style={{ colorScheme: 'dark' }}
+                />
+              </div>
+            )}
+
             {/* Download buttons */}
             <div className="flex flex-col gap-3 mb-5">
-              {order.mp3Url && (
+              {order.audio_mp3_url && (
                 <a
-                  href={order.mp3Url}
+                  href={order.audio_mp3_url}
                   download
                   className="flex items-center justify-between bg-purple-700 hover:bg-purple-600 text-white font-semibold px-5 py-3.5 rounded-xl transition-colors"
                 >
@@ -108,9 +121,9 @@ export default function Download() {
                   <span className="text-purple-200 text-xs font-normal">High Quality</span>
                 </a>
               )}
-              {order.wavUrl && (
+              {order.audio_wav_url && (
                 <a
-                  href={order.wavUrl}
+                  href={order.audio_wav_url}
                   download
                   className="flex items-center justify-between bg-amber-600 hover:bg-amber-500 text-white font-semibold px-5 py-3.5 rounded-xl transition-colors"
                 >
@@ -120,7 +133,7 @@ export default function Download() {
                   <span className="text-amber-200 text-xs font-normal">Lossless</span>
                 </a>
               )}
-              {!order.mp3Url && !order.wavUrl && (
+              {!order.audio_mp3_url && !order.audio_wav_url && (
                 <p className="text-gray-500 text-sm text-center py-4">
                   Download links are being prepared…
                 </p>

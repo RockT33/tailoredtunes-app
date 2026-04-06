@@ -23,22 +23,25 @@ const plans = [
   {
     name: 'Basic',
     price: '$9.99',
+    period: '/mo',
     tier: 'basic',
-    features: ['1 custom song', 'MP3 download', 'Standard quality'],
+    features: ['1 custom song/month', 'MP3 download', 'Standard quality'],
     highlight: false,
   },
   {
     name: 'Pro',
     price: '$19.99',
+    period: '/mo',
     tier: 'pro',
-    features: ['3 custom songs', 'MP3 + WAV download', 'High quality', 'Priority queue'],
+    features: ['3 custom songs/month', 'MP3 + WAV download', 'High quality', 'Priority queue'],
     highlight: true,
   },
   {
     name: 'Premium',
     price: '$29.99',
+    period: '/mo',
     tier: 'premium',
-    features: ['5 custom songs', 'MP3 + WAV download', 'Highest quality', 'Priority queue', 'Commercial license'],
+    features: ['5 custom songs/month', 'MP3 + WAV download', 'Highest quality', 'Priority queue', 'Commercial license'],
     highlight: false,
   },
 ]
@@ -130,7 +133,7 @@ export default function Landing() {
       {/* Pricing */}
       <section id="pricing" className="max-w-5xl mx-auto px-6 pb-28">
         <h2 className="text-3xl font-bold text-center mb-2">Simple Pricing</h2>
-        <p className="text-gray-400 text-center mb-10">Pay once, download your tracks forever.</p>
+        <p className="text-gray-400 text-center mb-10">No hidden fees. Cancel anytime.</p>
         <div className="grid sm:grid-cols-3 gap-6">
           {plans.map(plan => (
             <div
@@ -147,7 +150,10 @@ export default function Landing() {
                 </div>
               )}
               <h3 className="text-xl font-bold text-white mb-1">{plan.name}</h3>
-              <div className="text-3xl font-extrabold text-amber-400 mb-4">{plan.price}</div>
+              <div className="flex items-end gap-1 mb-4">
+                <span className="text-3xl font-extrabold text-amber-400">{plan.price}</span>
+                <span className="text-gray-400 text-sm mb-1">{plan.period}</span>
+              </div>
               <ul className="space-y-2 mb-6 flex-1">
                 {plan.features.map(feat => (
                   <li key={feat} className="text-gray-300 text-sm flex items-center gap-2">
