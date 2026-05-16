@@ -1,5 +1,5 @@
 const express = require('express');
-const { supabase } = require('../config/supabase');
+const { supabaseAdmin: supabase } = require('../config/supabase');
 const authMiddleware = require('../middleware/auth');
 const { getSignedUrls } = require('../integrations/storage');
 
